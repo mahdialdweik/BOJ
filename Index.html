@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bank of Jordan - Interactive Talent Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        boj: {
+                            blue: '#004B87', // Corporate Blue
+                            dark: '#002244', // Deep Blue for gradients
+                            red: '#D32F2F',  // Accent Red
+                            light: '#F1F5F9',
+                            gray: '#475569'
+                        }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F8FAFC;
+            -webkit-font-smoothing: antialiased;
+        }
+        /* Glassmorphism utilities */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .glass-dark {
+            background: rgba(0, 75, 135, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Custom Scrollbar */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1; 
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8; 
+        }
+        /* Card Hover Effects */
+        .job-card-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .job-card-hover:hover {
+            transform: scale(1.01) translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            border-color: #cbd5e1;
+        }
+        /* Mobile Touch & Scroll Enhancements */
+        @media (max-width: 768px) {
+            .custom-scrollbar::-webkit-scrollbar {
+                display: none; 
+            }
+            .custom-scrollbar {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen">
+
+    <header class="bg-gradient-to-br from-boj-dark via-boj-blue to-blue-800 text-white relative overflow-hidden">
+        <!-- Abstract Background Pattern -->
+        <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+        
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                <div class="flex items-center gap-5">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 hover:rotate-0 transition-transform">
+                        <i class="fas fa-university text-boj-red text-3xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-3 mb-1">
+                            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Bank of Jordan</h1>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Search -->
+                <div class="w-full md:w-80 relative mt-4 md:mt-0">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-blue-300"></i>
+                    </div>
+                    <input type="text" id="searchInput" placeholder="Search roles, departments, or locations..." 
+                           class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition-all shadow-inner text-base">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-6 animate-slide-up">
+                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <i class="fas fa-briefcase text-blue-200"></i>
+                    </div>
+                    <div>
+                        <span id="stat-roles" class="block text-2xl font-bold">50</span>
+                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Open Roles</span>
+                    </div>
+                </div>
+                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <i class="fas fa-globe-americas text-emerald-300"></i>
+                    </div>
+                    <div>
+                        <span id="stat-countries" class="block text-2xl font-bold">0</span>
+                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Countries</span>
+                    </div>
+                </div>
+                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <i class="fas fa-sitemap text-purple-300"></i>
+                    </div>
+                    <div>
+                        <span id="stat-depts" class="block text-2xl font-bold">0</span>
+                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Departments</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full -mt-6 relative z-20">
+        
+        <!-- Charts Dashboard -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+            <!-- Location Distribution -->
+            <div class="glass p-6 rounded-2xl shadow-sm col-span-1 animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt text-boj-blue"></i> Geographic Spread
+                    </h2>
+                </div>
+                <div class="relative h-72 md:h-60 w-full flex items-center justify-center">
+                    <canvas id="locationChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Department Distribution -->
+            <div class="glass p-6 rounded-2xl shadow-sm col-span-1 lg:col-span-2 animate-slide-up" style="animation-delay: 0.2s;">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-chart-bar text-boj-blue"></i> Demand by Department
+                    </h2>
+                </div>
+                <div class="relative h-72 md:h-60 w-full">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-end border-b border-slate-200 pb-4 gap-4 animate-slide-up" style="animation-delay: 0.3s;">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Organizational Directory</h2>
+                <p class="text-slate-500 mt-1 text-sm">Reviewing open requisitions across the internal hierarchy.</p>
+            </div>
+            
+            <div class="flex gap-2 overflow-x-auto pb-4 pt-1 w-full custom-scrollbar snap-x snap-mandatory" id="country-filters">
+                <!-- Country pills injected via JS -->
+            </div>
+        </div>
+
+        <!-- Dynamic Grid Container -->
+        <div id="departments-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pb-12 animate-slide-up" style="animation-delay: 0.4s;">
+            <!-- Content will be injected here via JavaScript -->
+        </div>
+        
+        <!-- Empty State (Hidden by default) -->
+        <div id="empty-state" class="hidden flex-col items-center justify-center py-20 text-center animate-fade-in">
+            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-search text-3xl text-slate-300"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-700">No matching roles found</h3>
+            <p class="text-slate-500 mt-2">Try adjusting your search terms or filters.</p>
+            <button onclick="resetFilters()" class="mt-4 px-4 py-2 bg-boj-blue text-white rounded-lg hover:bg-blue-700 transition">Clear Filters</button>
+        </div>
+
+    </main>
+
+    <script>
+        // Enhanced Data Extraction with Metadata from the prompt
+        const rawJobData = [
+            // Information Technology (IT)
+            { title: "Banking Application Support Clerk", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "2 months ago", status: "Actively reviewing" },
+            { title: "Technical Architect", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Head of IT - KSA", dept: "Information Technology", loc: "Riyadh", country: "KSA", posted: "1 week ago", status: "Actively reviewing" },
+            { title: "scrum Master", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Banking Application Support Manager", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Digital Product Owner", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "2 months ago", status: "Actively reviewing" },
+            { title: "IT Demand Manager", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "5 hours ago", status: "Early applicant", highlight: true },
+            { title: "IT - Operating System Engineer", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "4 hours ago", status: "Early applicant", highlight: true },
+            { title: "Senior IT Treasury Systems Specialist", dept: "Information Technology", loc: "Amman", country: "Jordan", posted: "3 days ago", status: "Actively reviewing" },
+
+            // Corporate & Institutional Banking
+            { title: "RM-Corporate - Iraq /Al Basrah", dept: "Corporate Banking", loc: "Basra", country: "Iraq", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Corporate Sales & Services Officer - KSA", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "1 month ago", status: "Alumni work here" },
+            { title: "Head of Institutional Non-Borrowing - KSA", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "4 months ago", status: "Actively reviewing" },
+            { title: "Trade Finance Sales Unit Head - Transaction Banking", dept: "Corporate Banking", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Head of Corporate Banking - Palestine", dept: "Corporate Banking", loc: "Ramallah", country: "Palestine", posted: "2 days ago", status: "Verified" },
+            { title: "Corporate Relationship Manager", dept: "Corporate Banking", loc: "Amman", country: "Jordan", posted: "3 weeks ago", status: "Actively reviewing" },
+            { title: "Relationship Manager/ IRAQ", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "4 hours ago", status: "Early applicant", highlight: true },
+            { title: "Senior Relationship Manager (SRM)/Corporate Banking – Regional", dept: "Corporate Banking", loc: "Amman", country: "Jordan", posted: "9 hours ago", status: "Early applicant", highlight: true },
+            { title: "Relationship Manager/ KSA", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "1 day ago", status: "Verified" },
+            { title: "Senior Relationship Manager/ KSA", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "1 day ago", status: "Verified" },
+            { title: "Executive Relationship Manager / KSA", dept: "Corporate Banking", loc: "Riyadh", country: "KSA", posted: "1 day ago", status: "Verified" },
+            { title: "Head of Transaction Banking", dept: "Corporate Banking", loc: "Amman", country: "Jordan", posted: "5 days ago", status: "Actively reviewing" },
+            { title: "Relationship Manager (RM) / Corporate Banking – Regional", dept: "Corporate Banking", loc: "Amman", country: "Jordan", posted: "9 hours ago", status: "Early applicant", highlight: true },
+
+            // Compliance & AML
+            { title: "Fraud Investigation Officer", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "1 week ago", status: "Actively reviewing" },
+            { title: "Compliance Officer - Iraq", dept: "Compliance & AML", loc: "Baghdad", country: "Iraq", posted: "1 month ago", status: "Alumni work here" },
+            { title: "Financial Institution KYC Officer", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "3 months ago", status: "Actively reviewing" },
+            { title: "Fraud Monitoring & Detection Officer", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "2 days ago", status: "Actively reviewing" },
+            { title: "Compliance unit head", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "3 months ago", status: "Actively reviewing" },
+            { title: "Investigation Section Head/ Deputy MLRO", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "2 months ago", status: "Actively reviewing" },
+            { title: "Anti-Money Laundry & Terrorism Financing Manager", dept: "Compliance & AML", loc: "Amman", country: "Jordan", posted: "2 weeks ago", status: "Actively reviewing" },
+
+            // Project Management & Transformation
+            { title: "Program Manager", dept: "Transformation & PMO", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Innovation Unit Head", dept: "Transformation & PMO", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Transformation Manager/ Retail", dept: "Transformation & PMO", loc: "Amman", country: "Jordan", posted: "3 months ago", status: "Actively reviewing" },
+            { title: "Projects Governance Manager", dept: "Transformation & PMO", loc: "Amman", country: "Jordan", posted: "2 months ago", status: "Actively reviewing" },
+            { title: "Project Manager", dept: "Transformation & PMO", loc: "Amman", country: "Jordan", posted: "1 week ago", status: "Actively reviewing" },
+
+            // Retail & Wealth Management
+            { title: "Relationship Officer- Retail", dept: "Retail Banking", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "Branch Manager / Baghdad", dept: "Retail Banking", loc: "Baghdad", country: "Iraq", posted: "3 weeks ago", status: "Actively reviewing" },
+            { title: "Customer Complains Officer", dept: "Retail Banking", loc: "Amman", country: "Jordan", posted: "5 months ago", status: "Actively reviewing" },
+            { title: "Wealth Management & Bancassurance Dept. Manager", dept: "Retail Banking", loc: "Amman", country: "Jordan", posted: "1 month ago", status: "Actively reviewing" },
+
+            // Operations & Admin
+            { title: "موظف حوالات خارجية - العراق (Remittances)", dept: "Operations & Admin", loc: "Baghdad", country: "Iraq", posted: "5 months ago", status: "Actively reviewing" },
+            { title: "Trade Finance Officer - Iraq", dept: "Operations & Admin", loc: "Baghdad", country: "Iraq", posted: "5 months ago", status: "Alumni work here" },
+            { title: "موظف صيانة (Maintenance)", dept: "Operations & Admin", loc: "Baghdad", country: "Iraq", posted: "3 weeks ago", status: "Alumni work here" },
+            { title: "Senior Tanfeeth Officer", dept: "Operations & Admin", loc: "Riyadh", country: "KSA", posted: "3 months ago", status: "Alumni work here" },
+
+            // Risk Management
+            { title: "Risk Officer - KSA", dept: "Risk Management", loc: "Riyadh", country: "KSA", posted: "Recently", status: "Standard" },
+            { title: "Business Continuity Manager- KSA", dept: "Risk Management", loc: "Riyadh", country: "KSA", posted: "2 months ago", status: "Alumni work here" },
+
+            // Treasury
+            { title: "Sr. Dealer/ Treasury Sales- Iraq", dept: "Treasury", loc: "Baghdad", country: "Iraq", posted: "1 month ago", status: "Actively reviewing" },
+            { title: "MANAGER – TREASURY SALES / Bahrain", dept: "Treasury", loc: "Bahrain", country: "Bahrain", posted: "Recently", status: "Verified" },
+
+            // Credit
+            { title: "Senior Financial Credit Analyst/ Corporate", dept: "Credit", loc: "Amman", country: "Jordan", posted: "5 months ago", status: "Actively reviewing" },
+            { title: "Credit Analyst - Bahrain", dept: "Credit", loc: "Bahrain", country: "Bahrain", posted: "1 day ago", status: "Verified" },
+
+            // Internal Audit
+            { title: "Senior Auditor - Operations & Support", dept: "Internal Audit", loc: "Amman", country: "Jordan", posted: "2 months ago", status: "Actively reviewing" },
+
+            // Human Resources
+            { title: "Employee Engagement Specialist", dept: "Human Resources", loc: "Amman", country: "Jordan", posted: "6 days ago", status: "Actively reviewing" }
+        ];
+
+        const deptIcons = {
+            "Information Technology": { icon: "fa-laptop-code", color: "text-indigo-500", bg: "bg-indigo-50" },
+            "Corporate Banking": { icon: "fa-building", color: "text-blue-600", bg: "bg-blue-50" },
+            "Compliance & AML": { icon: "fa-shield-alt", color: "text-red-500", bg: "bg-red-50" },
+            "Transformation & PMO": { icon: "fa-rocket", color: "text-purple-500", bg: "bg-purple-50" },
+            "Retail Banking": { icon: "fa-store", color: "text-emerald-500", bg: "bg-emerald-50" },
+            "Operations & Admin": { icon: "fa-cogs", color: "text-slate-500", bg: "bg-slate-50" },
+            "Risk Management": { icon: "fa-exclamation-triangle", color: "text-amber-500", bg: "bg-amber-50" },
+            "Treasury": { icon: "fa-chart-line", color: "text-cyan-600", bg: "bg-cyan-50" },
+            "Credit": { icon: "fa-file-invoice-dollar", color: "text-teal-600", bg: "bg-teal-50" },
+            "Internal Audit": { icon: "fa-search", color: "text-orange-500", bg: "bg-orange-50" },
+            "Human Resources": { icon: "fa-users", color: "text-pink-500", bg: "bg-pink-50" }
+        };
+
+        const locationColors = {
+            "Jordan": "bg-blue-100 text-blue-800 border-blue-200",
+            "KSA": "bg-emerald-100 text-emerald-800 border-emerald-200",
+            "Iraq": "bg-amber-100 text-amber-800 border-amber-200",
+            "Bahrain": "bg-red-100 text-red-800 border-red-200",
+            "Palestine": "bg-purple-100 text-purple-800 border-purple-200"
+        };
+
+        const chartColors = {
+            "Jordan": '#004B87',
+            "KSA": '#10B981',
+            "Iraq": '#F59E0B',
+            "Bahrain": '#EF4444',
+            "Palestine": '#8B5CF6'
+        };
+
+        const locationFlags = {
+            "Jordan": "🇯🇴", "KSA": "🇸🇦", "Iraq": "🇮🇶", "Bahrain": "🇧🇭", "Palestine": "🇵🇸"
+        };
+
+        // State variables
+        let currentData = [...rawJobData];
+        let activeCountryFilter = 'All';
+        let charts = {};
+
+
+        function getFilteredData() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            return rawJobData.filter(job => {
+                const matchesSearch = job.title.toLowerCase().includes(searchTerm) || 
+                                      job.dept.toLowerCase().includes(searchTerm) || 
+                                      job.loc.toLowerCase().includes(searchTerm);
+                const matchesCountry = activeCountryFilter === 'All' || job.country === activeCountryFilter;
+                return matchesSearch && matchesCountry;
+            });
+        }
+
+        function updateDashboard() {
+            currentData = getFilteredData();
+            
+            updateCounters(currentData);
+            renderGrid(currentData);
+            updateCharts(currentData);
+
+            const grid = document.getElementById('departments-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            if (currentData.length === 0) {
+                grid.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+            } else {
+                grid.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                emptyState.classList.remove('flex');
+            }
+        }
+
+        function updateCounters(data) {
+            const groupedByCountry = data.reduce((acc, job) => { acc[job.country] = true; return acc; }, {});
+            const groupedByDept = data.reduce((acc, job) => { acc[job.dept] = true; return acc; }, {});
+
+            // Animate counters
+            animateValue("stat-roles", parseInt(document.getElementById("stat-roles").innerText) || 0, data.length, 500);
+            animateValue("stat-countries", parseInt(document.getElementById("stat-countries").innerText) || 0, Object.keys(groupedByCountry).length, 500);
+            animateValue("stat-depts", parseInt(document.getElementById("stat-depts").innerText) || 0, Object.keys(groupedByDept).length, 500);
+        }
+
+        function animateValue(id, start, end, duration) {
+            if (start === end) return;
+            let range = end - start;
+            let current = start;
+            let increment = end > start ? 1 : -1;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            let obj = document.getElementById(id);
+            let timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        function buildFilters() {
+            const filterContainer = document.getElementById('country-filters');
+            const countries = ['All', ...new Set(rawJobData.map(job => job.country))];
+            
+            filterContainer.innerHTML = '';
+            countries.forEach(country => {
+                const btn = document.createElement('button');
+                const isAll = country === 'All';
+                
+                let baseClasses = "whitespace-nowrap px-5 py-2 md:py-1.5 rounded-full text-sm font-medium transition-all duration-200 border snap-start touch-manipulation ";
+                let activeClasses = isAll ? "bg-boj-blue text-white border-boj-blue shadow-md" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
+                
+                btn.className = baseClasses + activeClasses;
+                btn.innerHTML = isAll ? 'Global View' : `${locationFlags[country]} ${country}`;
+                
+                btn.onclick = (e) => {
+                    // Update active state visuals
+                    document.querySelectorAll('#country-filters button').forEach(b => {
+                        b.className = baseClasses + "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
+                    });
+                    btn.className = baseClasses + "bg-boj-blue text-white border-boj-blue shadow-md";
+                    
+                    activeCountryFilter = country;
+                    updateDashboard();
+                };
+                filterContainer.appendChild(btn);
+            });
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            activeCountryFilter = 'All';
+            buildFilters();
+            updateDashboard();
+        }
+
+        function renderGrid(data) {
+            const gridContainer = document.getElementById('departments-grid');
+            gridContainer.innerHTML = '';
+            
+            const groupedByDept = data.reduce((acc, job) => {
+                acc[job.dept] = acc[job.dept] || [];
+                acc[job.dept].push(job);
+                return acc;
+            }, {});
+
+            const sortedDepts = Object.keys(groupedByDept).sort((a, b) => groupedByDept[b].length - groupedByDept[a].length);
+
+            sortedDepts.forEach(dept => {
+                const jobs = groupedByDept[dept];
+                const theme = deptIcons[dept] || { icon: "fa-briefcase", color: "text-boj-blue", bg: "bg-blue-50" };
+                
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col";
+                
+                let jobsHTML = '';
+                jobs.forEach(job => {
+                    const badgeClass = locationColors[job.country];
+                    const flag = locationFlags[job.country];
+                    const highlightClass = job.highlight ? 'bg-amber-50 border-l-4 border-l-amber-400' : 'border-l-4 border-l-transparent hover:bg-slate-50';
+                    const statusIcon = job.highlight ? '<i class="fas fa-fire text-amber-500 mr-1"></i>' : '';
+                    
+                    jobsHTML += `
+                        <div class="job-card-hover p-4 md:p-5 border-b border-slate-100 last:border-0 transition-colors relative cursor-pointer group ${highlightClass} touch-manipulation">
+                            <div class="flex justify-between items-start mb-3 gap-3">
+                                <h4 class="text-sm md:text-base font-bold text-slate-800 leading-snug group-hover:text-boj-blue transition-colors pr-2">${job.title}</h4>
+                                <button class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity text-xs bg-boj-blue text-white px-3 py-1.5 lg:px-2 lg:py-1 rounded shadow-sm whitespace-nowrap active:scale-95">Apply</button>
+                            </div>
+                            
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${badgeClass}">
+                                    <span class="mr-1">${flag}</span> ${job.loc}
+                                </span>
+                                <span class="text-xs text-slate-500 flex items-center">
+                                    <i class="far fa-clock mr-1"></i> ${job.posted}
+                                </span>
+                            </div>
+                            
+                            <div class="text-xs text-slate-500 flex items-center mt-1">
+                                ${statusIcon} <span class="${job.highlight ? 'text-amber-700 font-semibold' : ''}">${job.status}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="${theme.bg} px-5 py-4 border-b border-slate-200 flex justify-between items-center sticky top-0 z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-white shadow-sm flex items-center justify-center border border-slate-100">
+                                <i class="fas ${theme.icon} ${theme.color} text-base"></i>
+                            </div>
+                            <h3 class="font-bold text-slate-800 text-sm md:text-base">${dept}</h3>
+                        </div>
+                        <span class="bg-white text-slate-600 text-xs font-bold px-2.5 py-1 rounded-full border border-slate-200 shadow-sm">
+                            ${jobs.length} Role${jobs.length > 1 ? 's' : ''}
+                        </span>
+                    </div>
+                    <div class="flex-grow overflow-y-auto custom-scrollbar max-h-[400px]">
+                        ${jobsHTML}
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+            });
+        }
+
+        function initCharts() {
+            Chart.defaults.font.family = 'Inter';
+            Chart.defaults.color = '#64748b';
+            
+            const locCtx = document.getElementById('locationChart').getContext('2d');
+            const getLegendPos = () => window.innerWidth < 768 ? 'bottom' : 'right';
+
+            charts.location = new Chart(locCtx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: getLegendPos(), labels: { usePointStyle: true, boxWidth: 8, padding: 15 } },
+                        tooltip: { backgroundColor: 'rgba(0, 34, 68, 0.9)', padding: 12, cornerRadius: 8 }
+                    },
+                    cutout: '70%',
+                    animation: { animateScale: true, animateRotate: true }
+                }
+            });
+
+            const deptCtx = document.getElementById('departmentChart').getContext('2d');
+            charts.department = new Chart(deptCtx, {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { backgroundColor: 'rgba(0, 34, 68, 0.9)', padding: 12, cornerRadius: 8 }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false } },
+                        x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: false }, grid: { display: false, drawBorder: false } }
+                    }
+                }
+            });
+            
+            updateCharts(rawJobData);
+        }
+
+        function updateCharts(data) {
+            // Process Location Data
+            const groupedByCountry = data.reduce((acc, job) => {
+                acc[job.country] = (acc[job.country] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const countries = Object.keys(groupedByCountry);
+            const countryCounts = Object.values(groupedByCountry);
+            const bgColors = countries.map(c => chartColors[c] || '#94a3b8');
+
+            charts.location.data = {
+                labels: countries,
+                datasets: [{
+                    data: countryCounts,
+                    backgroundColor: bgColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
+                }]
+            };
+            charts.location.update();
+
+            // Process Department Data
+            const groupedByDept = data.reduce((acc, job) => {
+                acc[job.dept] = (acc[job.dept] || 0) + 1;
+                return acc;
+            }, {});
+            
+            const sortedDeptEntries = Object.entries(groupedByDept).sort((a, b) => b[1] - a[1]);
+            
+            charts.department.data = {
+                labels: sortedDeptEntries.map(e => e[0]),
+                datasets: [{
+                    label: 'Open Roles',
+                    data: sortedDeptEntries.map(e => e[1]),
+                    backgroundColor: '#004B87',
+                    borderRadius: 4,
+                    hoverBackgroundColor: '#003366'
+                }]
+            };
+            charts.department.update();
+        }
+
+        // Initialize App
+        window.onload = () => {
+            buildFilters();
+            initCharts();
+            
+            // Set up search listener with small debounce
+            let timeout = null;
+            document.getElementById('searchInput').addEventListener('input', () => {
+                clearTimeout(timeout);
+                timeout = setTimeout(updateDashboard, 300);
+            });
+
+            // Handle window resize for responsive charts
+            window.addEventListener('resize', () => {
+                if (charts.location) {
+                    const newPos = window.innerWidth < 768 ? 'bottom' : 'right';
+                    if (charts.location.options.plugins.legend.position !== newPos) {
+                        charts.location.options.plugins.legend.position = newPos;
+                        charts.location.update();
+                    }
+                }
+            });
+            
+            // Initial render
+            updateDashboard();
+        };
+    </script>
+</body>
+</html>
