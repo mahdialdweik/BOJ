@@ -120,37 +120,37 @@
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <i class="fas fa-search text-blue-300"></i>
                     </div>
-                    <input type="text" id="searchInput" placeholder="Search roles, departments, or locations..." 
+                    <input type="text" id="searchInput" placeholder="Search roles, locations..." 
                            class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-white/50 focus:bg-white/20 transition-all shadow-inner text-base">
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mt-6 animate-slide-up">
-                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <i class="fas fa-briefcase text-blue-200"></i>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mt-6 animate-slide-up">
+                <div class="glass-dark p-3 md:p-4 rounded-xl flex items-center gap-3">
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-500/20 flex shrink-0 items-center justify-center">
+                        <i class="fas fa-briefcase text-blue-200 text-sm md:text-base"></i>
                     </div>
-                    <div>
-                        <span id="stat-roles" class="block text-2xl font-bold">50</span>
-                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Open Roles</span>
-                    </div>
-                </div>
-                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <i class="fas fa-globe-americas text-emerald-300"></i>
-                    </div>
-                    <div>
-                        <span id="stat-countries" class="block text-2xl font-bold">0</span>
-                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Countries</span>
+                    <div class="overflow-hidden">
+                        <span id="stat-roles" class="block text-xl md:text-2xl font-bold truncate">50</span>
+                        <span class="text-[10px] md:text-xs text-blue-200 uppercase tracking-wider font-semibold truncate">Roles</span>
                     </div>
                 </div>
-                <div class="glass-dark p-4 rounded-xl flex items-center gap-4">
-                    <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                        <i class="fas fa-sitemap text-purple-300"></i>
+                <div class="glass-dark p-3 md:p-4 rounded-xl flex items-center gap-3">
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-emerald-500/20 flex shrink-0 items-center justify-center">
+                        <i class="fas fa-globe-americas text-emerald-300 text-sm md:text-base"></i>
                     </div>
-                    <div>
-                        <span id="stat-depts" class="block text-2xl font-bold">0</span>
-                        <span class="text-xs text-blue-200 uppercase tracking-wider font-semibold">Departments</span>
+                    <div class="overflow-hidden">
+                        <span id="stat-countries" class="block text-xl md:text-2xl font-bold truncate">0</span>
+                        <span class="text-[10px] md:text-xs text-blue-200 uppercase tracking-wider font-semibold truncate">Countries</span>
+                    </div>
+                </div>
+                <div class="glass-dark p-3 md:p-4 rounded-xl flex items-center gap-3 col-span-2 md:col-span-1">
+                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-purple-500/20 flex shrink-0 items-center justify-center">
+                        <i class="fas fa-sitemap text-purple-300 text-sm md:text-base"></i>
+                    </div>
+                    <div class="overflow-hidden">
+                        <span id="stat-depts" class="block text-xl md:text-2xl font-bold truncate">0</span>
+                        <span class="text-[10px] md:text-xs text-blue-200 uppercase tracking-wider font-semibold truncate">Departments</span>
                     </div>
                 </div>
             </div>
@@ -398,7 +398,7 @@
                 const btn = document.createElement('button');
                 const isAll = country === 'All';
                 
-                let baseClasses = "whitespace-nowrap px-5 py-2 md:py-1.5 rounded-full text-sm font-medium transition-all duration-200 border snap-start touch-manipulation ";
+                let baseClasses = "whitespace-nowrap px-6 py-2.5 md:px-5 md:py-1.5 rounded-full text-sm font-medium transition-all duration-200 border snap-start touch-manipulation active:scale-95 ";
                 let activeClasses = isAll ? "bg-boj-blue text-white border-boj-blue shadow-md" : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
                 
                 btn.className = baseClasses + activeClasses;
@@ -452,10 +452,9 @@
                     const statusIcon = job.highlight ? '<i class="fas fa-fire text-amber-500 mr-1"></i>' : '';
                     
                     jobsHTML += `
-                        <div class="job-card-hover p-4 md:p-5 border-b border-slate-100 last:border-0 transition-colors relative cursor-pointer group ${highlightClass} touch-manipulation">
+                        <div class="job-card-hover p-4 md:p-5 border-b border-slate-100 last:border-0 transition-colors relative cursor-pointer group ${highlightClass} touch-manipulation active:bg-slate-100">
                             <div class="flex justify-between items-start mb-3 gap-3">
-                                <h4 class="text-sm md:text-base font-bold text-slate-800 leading-snug group-hover:text-boj-blue transition-colors pr-2">${job.title}</h4>
-                                <button class="opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity text-xs bg-boj-blue text-white px-3 py-1.5 lg:px-2 lg:py-1 rounded shadow-sm whitespace-nowrap active:scale-95">Apply</button>
+                                <h4 class="text-sm md:text-base font-bold text-slate-800 leading-snug group-hover:text-boj-blue transition-colors w-full">${job.title}</h4>
                             </div>
                             
                             <div class="flex flex-wrap items-center gap-2 mb-2">
@@ -529,7 +528,7 @@
                     },
                     scales: {
                         y: { beginAtZero: true, grid: { color: '#f1f5f9', drawBorder: false } },
-                        x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: false }, grid: { display: false, drawBorder: false } }
+                        x: { ticks: { maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: window.innerWidth < 768 ? 6 : undefined }, grid: { display: false, drawBorder: false } }
                     }
                 }
             });
@@ -600,6 +599,13 @@
                     if (charts.location.options.plugins.legend.position !== newPos) {
                         charts.location.options.plugins.legend.position = newPos;
                         charts.location.update();
+                    }
+                }
+                if (charts.department) {
+                    const newMaxTicks = window.innerWidth < 768 ? 6 : undefined;
+                    if (charts.department.options.scales.x.ticks.maxTicksLimit !== newMaxTicks) {
+                        charts.department.options.scales.x.ticks.maxTicksLimit = newMaxTicks;
+                        charts.department.update();
                     }
                 }
             });
